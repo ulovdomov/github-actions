@@ -12,9 +12,14 @@ name: CI
 
 on:
   pull_request:
+    types: [ "opened", "synchronize", "edited", "reopened" ]
+  #    paths-ignore:
+  #      - "docs/**"
   push:
     branches:
       - "**"
+#    paths-ignore:
+#      - "docs/**"
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -54,6 +59,7 @@ jobs:
         run: docker compose -f "docker-compose.ci.yml" exec -it php composer run tests
 
       - name: "Upload_Artifacts"
+        if: failure()
         uses: "./.github/actions/upload-artifacts"
         with:
           log-dir: "./log"
