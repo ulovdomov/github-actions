@@ -42,6 +42,7 @@ jobs:
           checked-files: ".infrastructure/docker/php/Dockerfile docker-compose.ci.yml .infrastructure/docker/php/entrypoint-staging.sh .infrastructure/docker/php/php.ini"
           composer-token: ${{ secrets.UD_COMPOSER_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          nginx: false # Optional nginx container (default: false)
 
       - name: "PHP_CodeSniffer"
         uses: "ulovdomov/github-actions/.github/actions/php-codesniffer@v1"
