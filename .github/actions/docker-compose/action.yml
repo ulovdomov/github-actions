@@ -1,0 +1,60 @@
+name: "Docker_Compose"
+description: "Run Docker_Compose"
+
+inputs:
+  command:
+    required: true
+    description: "Docker compose command"
+
+  checked-files:
+    required: true
+    description: "List of files to include in SHA1 calculation, separated by spaces"
+
+  composer-token:
+    required: true
+    description: "Composer token value"
+
+  github-token:
+    required: true
+    description: "GitHub token value"
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ inputs.github-token }}
+
+    - name: Calculate cache key
+      shell: "bash"
+      run: |
+        FILE_HASHES=$(sha1sum ${{ inputs.checked-files }} | awk '{ print $1 }' | tr '\n' ' ')
+        echo "BUILD_HASH=$(echo -n "$FILE_HASHES" | md5sum | awk '{ print $1 }')" >> $GITHUB_ENV
+
+    - name: Cache Docker layers
+      id: docker-cache
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ env.BUILD_HASH }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-${{ env.BUILD_HASH }}
+
+    - name: Build and start containers
+      shell: "bash"
+      run: |
+        docker buildx build --push -t ghcr.io/${{ github.repository }}:latest \
+          --cache-from=type=local,src=/tmp/.buildx-cache \
+          --cache-to=type=local,dest=/tmp/.buildx-cache,mode=max \
+          --file .infrastructure/docker/php/Dockerfile \
+          --build-arg COMPOSER_TOKEN=${{ inputs.composer-token }} \
+          --target build-dev \
+          .
+        ${{ inputs.command }}

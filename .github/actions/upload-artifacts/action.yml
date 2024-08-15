@@ -1,0 +1,28 @@
+name: "Upload_Artifacts"
+description: "Run Upload Artifacts"
+
+inputs:
+  log-dir:
+    required: true
+    description: "Log dir to archive"
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Prepare artifacts
+      if: failure()
+      shell: "bash"
+      run: |
+        docker compose exec -it php mkdir build-logs
+        docker compose exec -it php cp -R ${{ inputs.log-dir }} build-logs
+        docker compose exec -it php tar -cf build-logs.tar build-logs/
+        docker compose cp php:/var/www/html/build-logs.tar build-logs.tar
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: build-logs
+        path: build-logs.tar
+        retention-days: 5
