@@ -36,7 +36,7 @@ jobs:
         run: echo "COMPOSER_TOKEN=${{ secrets.UD_COMPOSER_TOKEN }}" > .env
 
       - name: "Docker_Compose"
-        uses: "./.github/actions/docker-compose"
+        uses: "ulovdomov/github-actions/.github/actions/docker-compose@v1"
         with:
           command: 'docker compose -f "docker-compose.ci.yml" up -d'
           checked-files: ".infrastructure/docker/php/Dockerfile docker-compose.ci.yml .infrastructure/docker/php/entrypoint-staging.sh .infrastructure/docker/php/php.ini"
@@ -44,13 +44,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "PHP_CodeSniffer"
-        uses: "./.github/actions/php-codesniffer"
+        uses: "ulovdomov/github-actions/.github/actions/php-codesniffer@v1"
         with:
-          command: 'docker compose -f "docker-compose.ci.yml" exec -it php composer run cs'
+          command: 'docker compose -f "docker-comose.ci.yml" exec -it php composer run cs'
           cache-path: "./temp/.php-codesniffer-cache"
 
       - name: "PHPStan"
-        uses: "./.github/actions/php-stan"
+        uses: "ulovdomov/github-actions/.github/actions/php-stan@v1"
         with:
           command: 'docker compose -f "docker-compose.ci.yml" exec -it php composer run phpstan'
           cache-path: "./temp/.php-stan-cache"
@@ -60,7 +60,7 @@ jobs:
 
       - name: "Upload_Artifacts"
         if: failure()
-        uses: "./.github/actions/upload-artifacts"
+        uses: "ulovdomov/github-actions/.github/actions/upload-artifacts@v1"
         with:
           log-dir: "./log"
 ```
