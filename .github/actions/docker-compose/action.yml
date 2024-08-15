@@ -18,6 +18,11 @@ inputs:
     required: true
     description: "GitHub token value"
 
+  nginx:
+    required: false
+    default: "false"
+    description: "Set to true to build and start Nginx container"
+
 runs:
   using: "composite"
 
@@ -47,7 +52,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-buildx-${{ env.BUILD_HASH }}
 
-    - name: Build and start containers
+    - name: Build PHP container
       shell: "bash"
       run: |
         docker buildx build --push -t ghcr.io/${{ github.repository }}:latest \
@@ -57,4 +62,18 @@ runs:
           --build-arg COMPOSER_TOKEN=${{ inputs.composer-token }} \
           --target build-dev \
           .
-        ${{ inputs.command }}
+
+    - name: Build Nginx container
+      if: ${{ inputs.build-nginx == 'true' }}
+      shell: "bash"
+      run: |
+        docker buildx build --push -t ghcr.io/${{ github.repository }}:nginx \
+          --cache-from=type=local,src=/tmp/.buildx-cache \
+          --cache-to=type=local,dest=/tmp/.buildx-cache,mode=max \
+          --file .infrastructure/docker/nginx/Dockerfile \
+          --build-arg PHP_FPM_ENV=docker \
+          .
+
+    - name: Start containers
+      shell: "bash"
+      run: ${{ inputs.command }}
