@@ -13,13 +13,15 @@ name: CI
 on:
   pull_request:
     types: [ "opened", "synchronize", "edited", "reopened" ]
-  #    paths-ignore:
-  #      - "docs/**"
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
   push:
     branches:
       - "**"
-#    paths-ignore:
-#      - "docs/**"
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -48,13 +50,13 @@ jobs:
         uses: "ulovdomov/github-actions/.github/actions/php-codesniffer@v1"
         with:
           command: 'docker compose -f "docker-comose.ci.yml" exec -it php composer run cs'
-          cache-path: "./temp/.php-codesniffer-cache"
+          cache-path: "temp/.php-codesniffer-cache"
 
       - name: "PHPStan"
         uses: "ulovdomov/github-actions/.github/actions/php-stan@v1"
         with:
           command: 'docker compose -f "docker-compose.ci.yml" exec -it php composer run phpstan'
-          cache-path: "./temp/.php-stan-cache"
+          cache-path: "temp/.php-stan-cache"
 
       - name: Run tests
         run: docker compose -f "docker-compose.ci.yml" exec -it php composer run tests

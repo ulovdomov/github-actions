@@ -21,6 +21,10 @@ runs:
         script: "return `ud-php-php-stan--job-${{ github.job }}--os-${{ runner.os }}--matrix-${{ toJson(matrix) }}--run`.replaceAll(',', '+').replaceAll(' ', '').replaceAll(/(?:\\r\\n|\\r|\\n)/g, '');"
         result-encoding: "string"
 
+    - name: "Ensure cache directory exists"
+      shell: "bash"
+      run: mkdir -p ${{ inputs.cache-path }}
+
     - name: "Cache PHPStan data"
       uses: "actions/cache@v4"
       with:
