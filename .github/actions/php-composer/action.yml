@@ -1,0 +1,31 @@
+name: "PHP_Composer"
+description: "Run PHP_Composer"
+
+inputs:
+  command:
+    required: false
+    default: "composer install --no-interaction --no-progress --prefer-dist"
+    description: "Composer's installation command"
+
+  cache-path:
+    required: true
+    description: "Composer cache path"
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: "Cache Composer dependencies"
+      uses: "actions/cache@v4"
+      with:
+        path: "${{ inputs.cache-path }}"
+        key: "ud-php-composer-${{ runner.os }}-${{ hashFiles('**/composer.json', '**/composer.lock') }}"
+        restore-keys: "ud-php-composer-${{ runner.os }}-"
+
+    - name: "Ensure cache directory exists"
+      shell: "bash"
+      run: mkdir -p ${{ inputs.cache-path }}
+
+    - name: "Install Composer dependencies"
+      shell: "bash"
+      run: "${{ inputs.command }}"
