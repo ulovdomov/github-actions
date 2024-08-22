@@ -18,6 +18,11 @@ inputs:
     required: true
     description: "GitHub token value"
 
+  target:
+    required: false
+    default: "build-dev"
+    description: "Dockerfile target"
+
   nginx:
     required: false
     default: "false"
@@ -60,7 +65,7 @@ runs:
           --cache-to=type=local,dest=/tmp/.buildx-cache,mode=max \
           --file .infrastructure/docker/php/Dockerfile \
           --build-arg COMPOSER_TOKEN=${{ inputs.composer-token }} \
-          --target build-dev \
+          --target ${{ inputs.target }} \
           .
 
     - name: Build Nginx container
