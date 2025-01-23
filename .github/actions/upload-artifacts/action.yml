@@ -20,7 +20,7 @@ runs:
         docker compose cp php:/var/www/html/build-logs.tar build-logs.tar
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: build-logs
