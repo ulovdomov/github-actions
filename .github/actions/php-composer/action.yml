@@ -8,23 +8,26 @@ inputs:
     description: "Composer's installation command"
 
   cache-path:
-    required: true
-    description: "Composer cache path"
+    required: false
+    default: ""
+    description: "Custom cache path for Composer dependencies"
 
 runs:
   using: "composite"
 
   steps:
+    - name: "Get Composer cache directory"
+      id: "php-composer-cache"
+      if: "${{ inputs.cache-path == '' }}"
+      shell: "bash"
+      run: 'echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT'
+
     - name: "Cache Composer dependencies"
       uses: "actions/cache@v4"
       with:
-        path: "${{ inputs.cache-path }}"
+        path: "${{ inputs.cache-path != '' && inputs.cache-path || steps.php-composer-cache.outputs.dir }}"
         key: "ud-php-composer-${{ runner.os }}-${{ hashFiles('**/composer.json', '**/composer.lock') }}"
         restore-keys: "ud-php-composer-${{ runner.os }}-"
-
-    - name: "Ensure cache directory exists"
-      shell: "bash"
-      run: mkdir -p ${{ inputs.cache-path }}
 
     - name: "Install Composer dependencies"
       shell: "bash"
