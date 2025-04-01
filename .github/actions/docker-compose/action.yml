@@ -57,27 +57,31 @@ runs:
         restore-keys: |
           ${{ runner.os }}-buildx-${{ env.BUILD_HASH }}
 
-    - name: Build PHP container
-      shell: "bash"
-      run: |
-        docker buildx build --push -t ghcr.io/${{ github.repository }}:latest \
-          --cache-from=type=local,src=/tmp/.buildx-cache \
-          --cache-to=type=local,dest=/tmp/.buildx-cache,mode=max \
-          --file .infrastructure/docker/php/Dockerfile \
-          --build-arg COMPOSER_TOKEN=${{ inputs.composer-token }} \
-          --target ${{ inputs.target }} \
-          .
+    - name: Build and push PHP container
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        tags: ghcr.io/${{ github.repository }}:php-latest
+        file: .infrastructure/docker/php/Dockerfile
+        build-args: |
+          COMPOSER_TOKEN=${{ inputs.composer-token }}
+        target: ${{ inputs.target }}
 
-    - name: Build Nginx container
+    - name: Build and push Nginx container
       if: ${{ inputs.build-nginx == 'true' }}
-      shell: "bash"
-      run: |
-        docker buildx build --push -t ghcr.io/${{ github.repository }}:nginx \
-          --cache-from=type=local,src=/tmp/.buildx-cache \
-          --cache-to=type=local,dest=/tmp/.buildx-cache,mode=max \
-          --file .infrastructure/docker/nginx/Dockerfile \
-          --build-arg PHP_FPM_ENV=docker \
-          .
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        tags: ghcr.io/${{ github.repository }}:nginx-latest
+        file: .infrastructure/docker/nginx/Dockerfile
+        build-args: |
+          PHP_FPM_ENV=docker
 
     - name: Start containers
       shell: "bash"
