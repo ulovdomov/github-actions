@@ -12,6 +12,11 @@ inputs:
     default: ""
     description: "Custom cache path for Composer dependencies"
 
+  composer-token:
+    required: false
+    default: ""
+    description: "GitHub token for private Composer packages"
+
 runs:
   using: "composite"
 
@@ -21,6 +26,13 @@ runs:
       if: "${{ inputs.cache-path == '' }}"
       shell: "bash"
       run: 'echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT'
+
+    - name: "Configure Composer auth.json"
+      if: "${{ inputs.composer-token != '' }}"
+      shell: "bash"
+      run: |
+        mkdir -p "$(composer config home)"
+        echo '{"github-oauth": {"github.com": "${{ inputs.composer-token }}"}}' > "$(composer config home)/auth.json"
 
     - name: "Cache Composer dependencies"
       uses: "actions/cache@v4"
