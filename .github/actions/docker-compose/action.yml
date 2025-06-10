@@ -57,6 +57,10 @@ runs:
         restore-keys: |
           ${{ runner.os }}-buildx-${{ env.BUILD_HASH }}
 
+    - name: Write .composer-token.txt file
+      shell: "bash"
+      run: echo ${{ inputs.composer-token }} > .composer-token.txt
+
     - name: Build PHP container
       shell: "bash"
       run: |
@@ -64,7 +68,7 @@ runs:
           --cache-from=type=local,src=/tmp/.buildx-cache \
           --cache-to=type=local,dest=/tmp/.buildx-cache,mode=max \
           --file .infrastructure/docker/php/Dockerfile \
-          --build-arg COMPOSER_TOKEN=${{ inputs.composer-token }} \
+          --secret id=composer_token,src=./.composer-token.txt \
           --target ${{ inputs.target }} \
           .
 
